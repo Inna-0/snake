@@ -5,17 +5,17 @@ import random
 pygame.init()
 
 # Константы
-RES = 800  # Размер экрана
-SIZE = 30  # Размер змейки и яблока
+RES = 700  # Размер экрана
+SIZE = 25  # Размер змейки и яблока
 
 # Цвета
-BLACK = (0, 114, 255)
-GREEN = (54, 184, 154)
+BLACK = (0, 0, 0)
+GREEN = (0, 255, 50)
 LIGHT_GREEN = (225, 225, 250)
-RED = (255, 0, 0)
-WHITE = (255, 255, 255)
-PINK = (145, 192, 203)
-BLUE = (75, 47, 147)
+RED = (220, 20, 20)
+WHITE = (255, 105, 136)
+PINK = (230, 230, 250)
+BLUE = (176, 196, 222)
 
 # Инициализация переменных
 x, y = random.randrange(0, RES, SIZE), random.randrange(0, RES, SIZE)
@@ -24,10 +24,17 @@ snake = [(x, y)]
 dx, dy = 0, 0
 fps = 7  # Скорость змейки
 length = 1  # Начальная длина змейки
+score = 0  # Счет
 
-# Загрузка изображения
+# Загрузка изображений
 snake_img = pygame.image.load('snake.png')
 snake_img = pygame.transform.scale(snake_img, (300, 400))
+fone_img = pygame.image.load('Фон.jpg')
+fone_img = pygame.transform.scale(fone_img, (700, 685))
+obstacle_img = pygame.image.load('obstacle.png')
+obstacle_img = pygame.transform.scale(obstacle_img, (SIZE, SIZE))
+apple_img = pygame.image.load('apple.png')
+apple_img = pygame.transform.scale(apple_img, (SIZE, SIZE))
 
 # Настройка экрана
 sc = pygame.display.set_mode([RES, RES])
@@ -36,12 +43,25 @@ pygame.display.set_caption('Snake Game')
 clock = pygame.time.Clock()
 font = pygame.font.Font(None, 36)
 
+# Объявление препятствий
+obstacles = []
+
+# Функция для генерации нового препятствия
+def generate_obstacle():
+    while True:
+        obstacle = (random.randrange(0, RES, SIZE), random.randrange(0, RES, SIZE))
+        if obstacle not in snake and obstacle != apple:
+            obstacles.append(obstacle)
+            break
+
+# Генерация начальных препятствий
+for _ in range(0):
+    generate_obstacle()
 
 # Функция для отображения текста на экране
 def message_to_screen(msg, color, y_displace=0):
     screen_text = font.render(msg, True, color)
     sc.blit(screen_text, [RES / 6, RES / 3 + y_displace])
-
 
 # Функция для рисования кнопок
 def draw_button(msg, color, button_rect):
@@ -50,20 +70,22 @@ def draw_button(msg, color, button_rect):
     text_rect = text_surf.get_rect(center=button_rect.center)
     sc.blit(text_surf, text_rect)
 
-
 # Функция для сброса переменных
 def reset_game():
-    global x, y, dx, dy, length, snake, apple
+    global x, y, dx, dy, length, snake, apple, score, obstacles
     x, y = random.randrange(0, RES, SIZE), random.randrange(0, RES, SIZE)
     apple = random.randrange(0, RES, SIZE), random.randrange(0, RES, SIZE)
     snake = [(x, y)]
     dx, dy = 0, 0
     length = 1
-
+    score = 0  # Сброс счета
+    obstacles = []
+    for _ in range(0):
+        generate_obstacle()
 
 # Основной игровой цикл
 def gameLoop():
-    global x, y, dx, dy, length, snake, apple
+    global x, y, dx, dy, length, snake, apple, score
 
     game_over = False
     game_close = False
@@ -73,7 +95,7 @@ def gameLoop():
         while not game_start:
             sc.fill(PINK)
             sc.blit(snake_img, ((RES - snake_img.get_width()) // 2, (RES - snake_img.get_height()) // 2))
-            message_to_screen("Welcome to Snake Game!", WHITE, -150)
+            message_to_screen("Welcome to Snake Game!", WHITE, -160)
 
             # Определение кнопок
             start_button = pygame.Rect(RES // 2 - 50, RES // 2 + 100, 100, 40)
@@ -98,7 +120,8 @@ def gameLoop():
 
         while game_close:
             sc.fill(BLUE)
-            message_to_screen("Game Over!", RED)
+            sc.blit(fone_img, ((RES - fone_img.get_width()) // 2, (RES - fone_img.get_height()) // 2))
+            message_to_screen(f"Game Over! Score: {score}", RED)
 
             # Определение кнопок
             restart_button = pygame.Rect(RES // 2 - 50, RES // 2 + 50, 100, 40)
@@ -153,6 +176,10 @@ def gameLoop():
         if snake_head == apple:
             apple = random.randrange(0, RES, SIZE), random.randrange(0, RES, SIZE)
             length += 1
+            score += 1  # Увеличение счета
+            obstacles.clear()
+            for _ in range(25):
+                generate_obstacle()
         else:
             snake = snake[1:]
 
@@ -160,12 +187,22 @@ def gameLoop():
         if len(snake) != len(set(snake)):
             game_close = True
 
+        # Проверка столкновения змеи с препятствиями
+        if snake_head in obstacles:
+            game_close = True
+
         # Рисование всего на экране
         sc.fill(BLACK)
-        pygame.draw.rect(sc, RED, (*apple, SIZE, SIZE))
+        sc.blit(apple_img, apple)
 
         for i, j in snake:
             pygame.draw.rect(sc, GREEN, (i + 1, j + 1, SIZE - 2, SIZE - 2))
+
+        for obstacle in obstacles:
+            sc.blit(obstacle_img, obstacle)
+
+        score_text = font.render(f'Score: {score}', True, (255, 255, 255))
+        sc.blit(score_text, (10, 10))
 
         pygame.display.update()
 
@@ -175,6 +212,4 @@ def gameLoop():
     pygame.quit()
     quit()
 
-
 gameLoop()
-
