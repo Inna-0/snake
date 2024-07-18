@@ -117,6 +117,8 @@ def gameLoop():
                     if quit_button.collidepoint(event.pos):
                         game_over = True
                         game_start = True
+                    for _ in range(0):
+                        generate_obstacle()
 
         while game_close:
             sc.fill(BLUE)
@@ -178,8 +180,24 @@ def gameLoop():
             length += 1
             score += 1  # Увеличение счета
             obstacles.clear()
+            for _ in range(5):
+                if score >= 5:
+                    generate_obstacle()
+            for _ in range(10):
+                if score >= 10:
+                    generate_obstacle()
+            for _ in range(15):
+                if score >= 15:
+                    generate_obstacle()
+            for _ in range(20):
+                if score >= 20:
+                    generate_obstacle()
             for _ in range(25):
-                generate_obstacle()
+                if score >= 25:
+                    generate_obstacle()
+            for _ in range(30):
+                if score >= 30:
+                    generate_obstacle()
         else:
             snake = snake[1:]
 
